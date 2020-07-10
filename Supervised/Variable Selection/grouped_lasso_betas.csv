@@ -1,0 +1,109 @@
+variable,beta,method
+lbx074la,0,Grouped Lasso
+lbx099la,0,Grouped Lasso
+lbx118la,0,Grouped Lasso
+lbx138la,0,Grouped Lasso
+lbx153la,0,Grouped Lasso
+lbx170la,0,Grouped Lasso
+lbx180la,0,Grouped Lasso
+lbx187la,0,Grouped Lasso
+lbxd03la,0,Grouped Lasso
+lbxd05la,0,Grouped Lasso
+lbxd07la,0,Grouped Lasso
+lbxf03la,0,Grouped Lasso
+lbxf04la,0,Grouped Lasso
+lbxf05la,0,Grouped Lasso
+lbxf08la,0,Grouped Lasso
+lbxpcbla,0,Grouped Lasso
+lbxhxcla,0,Grouped Lasso
+lbx194la,0,Grouped Lasso
+lbxwbcsi,-0.006763539317609065,Grouped Lasso
+lbxlypct,-8.16240121762463e-4,Grouped Lasso
+lbxmopct,-0.005573801503682947,Grouped Lasso
+lbxnepct,-1.540707195585238e-4,Grouped Lasso
+lbxeopct,-5.707336341233967e-5,Grouped Lasso
+lbxbapct,0.019547378738433475,Grouped Lasso
+bmi_cat32,-0.0050438648636914754,Grouped Lasso
+bmi_cat33,-0.015998700189529532,Grouped Lasso
+edu_cat2,0.02166046235582405,Grouped Lasso
+edu_cat3,0.03817425630979314,Grouped Lasso
+edu_cat4,0.017963299227489266,Grouped Lasso
+race_cat2,-0.03808210528750083,Grouped Lasso
+race_cat3,0.008944543005997478,Grouped Lasso
+race_cat4,-0.03750353553581189,Grouped Lasso
+male1,-0.039486119059064,Grouped Lasso
+ln_lbxcot,0.0026727692050106185,Grouped Lasso
+age_cent,-0.00556245144816716,Grouped Lasso
+age_sq,-7.740648636975296e-6,Grouped Lasso
+lbx074la,0,MCP
+lbx099la,0,MCP
+lbx118la,0,MCP
+lbx138la,0,MCP
+lbx153la,0,MCP
+lbx170la,0,MCP
+lbx180la,0,MCP
+lbx187la,0,MCP
+lbxd03la,0,MCP
+lbxd05la,0,MCP
+lbxd07la,0,MCP
+lbxf03la,0,MCP
+lbxf04la,0,MCP
+lbxf05la,0,MCP
+lbxf08la,0,MCP
+lbxpcbla,0,MCP
+lbxhxcla,0,MCP
+lbx194la,0,MCP
+lbxwbcsi,-0.006763539317609065,MCP
+lbxlypct,-8.16240121762463e-4,MCP
+lbxmopct,-0.005573801503682947,MCP
+lbxnepct,-1.540707195585238e-4,MCP
+lbxeopct,-5.707336341233967e-5,MCP
+lbxbapct,0.019547378738433475,MCP
+bmi_cat32,-0.0050438648636914754,MCP
+bmi_cat33,-0.015998700189529532,MCP
+edu_cat2,0.02166046235582405,MCP
+edu_cat3,0.03817425630979314,MCP
+edu_cat4,0.017963299227489266,MCP
+race_cat2,-0.03808210528750083,MCP
+race_cat3,0.008944543005997478,MCP
+race_cat4,-0.03750353553581189,MCP
+male1,-0.039486119059064,MCP
+ln_lbxcot,0.0026727692050106185,MCP
+age_cent,-0.00556245144816716,MCP
+age_sq,-7.740648636975296e-6,MCP
+lbx074la,0,SCAD
+lbx099la,0,SCAD
+lbx118la,0,SCAD
+lbx138la,0,SCAD
+lbx153la,0,SCAD
+lbx170la,0,SCAD
+lbx180la,0,SCAD
+lbx187la,0,SCAD
+lbxd03la,0,SCAD
+lbxd05la,0,SCAD
+lbxd07la,0,SCAD
+lbxf03la,0,SCAD
+lbxf04la,0,SCAD
+lbxf05la,0,SCAD
+lbxf08la,0,SCAD
+lbxpcbla,0,SCAD
+lbxhxcla,0,SCAD
+lbx194la,0,SCAD
+lbxwbcsi,-0.006763539317609065,SCAD
+lbxlypct,-8.16240121762463e-4,SCAD
+lbxmopct,-0.005573801503682947,SCAD
+lbxnepct,-1.540707195585238e-4,SCAD
+lbxeopct,-5.707336341233967e-5,SCAD
+lbxbapct,0.019547378738433475,SCAD
+bmi_cat32,-0.0050438648636914754,SCAD
+bmi_cat33,-0.015998700189529532,SCAD
+edu_cat2,0.02166046235582405,SCAD
+edu_cat3,0.03817425630979314,SCAD
+edu_cat4,0.017963299227489266,SCAD
+race_cat2,-0.03808210528750083,SCAD
+race_cat3,0.008944543005997478,SCAD
+race_cat4,-0.03750353553581189,SCAD
+male1,-0.039486119059064,SCAD
+ln_lbxcot,0.0026727692050106185,SCAD
+age_cent,-0.00556245144816716,SCAD
+age_sq,-7.740648636975296e-6,SCAD

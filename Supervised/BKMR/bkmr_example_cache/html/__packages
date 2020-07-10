@@ -1,0 +1,15 @@
+base
+knitr
+bkmr
+corrplot
+ggplot2
+tidyverse
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+bindrcpp
+Matrix
