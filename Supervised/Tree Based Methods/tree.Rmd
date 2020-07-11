@@ -1,0 +1,211 @@
+---
+title: "Tree Based Methods"
+author: "Ahlam Abuawad"
+date: "7/10/2020"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("janitor")
+library(janitor)
+#install.packages("caret")
+library(caret)
+#install.packages("Hmisc")
+library(Hmisc)
+#install.packages("pROC")
+library(pROC)
+#install.packages("rpart")
+library(rpart)
+#install.packages("rpart.plot")
+library(rpart.plot)
+#install.packages("tree")
+library(tree)
+#install.packages("ranger")
+library(ranger)
+#install.packages("randomForest")
+library(randomForest)
+#install.packages("gbm")
+library(gbm)
+#install.packages("knitr")
+library(knitr)
+```
+
+# Data Import and Cleaning 
+
+First, load the dataset; clean up names as needed; and convert factors to, well, factors. 
+
+```{r}
+study_pop = read_csv(here::here("Data/studypop.csv")) %>% 
+  clean_names(case = c("old_janitor")) %>% 
+  mutate(bmi_cat3 = as.factor(bmi_cat3),
+         edu_cat = as.factor(edu_cat),
+         race_cat = as.factor(race_cat),
+         male = as.factor(male)) 
+```
+
+Quick data descriptions; because of the length of the output, we don't execute this command here, but encourage you to!
+
+```{r, eval = FALSE}
+describe(study_pop)
+```
+
+Next we remove missing values and reorder predictors (environmental variables first, confounders second). In keeping with standard practice, we'll ln-transform the environmental exposures and the outcome. This is the dataset we'll use to illustrate variable selection methods. 
+
+```{r}
+data_tree = study_pop %>% 
+  mutate_at(vars(contains("la")), log) %>% 
+  mutate(log_telomean = log(telomean)) %>% 
+  dplyr::select(log_telomean, lbx074la:lbx187la, lbxd03la:lbx194la, everything(), -seqn, -telomean) %>% 
+  na.omit(log_telomean) 
+
+names(data_tree)
+
+dim(data_tree)
+```
+
+Trees utilize a training set to model set parameters that can be applied to a test set (remaining observations). 
+
+```{r}
+set.seed(1993) # for every cv step
+train_telo <- sample(1:nrow(data_tree), floor(nrow(data_tree)/2))
+data_train <- data_tree[train_telo,]
+data_test <- data_tree[-train_telo,]
+```
+
+Let's take a quick look at our two datasets.
+
+```{r}
+dim(data_train)
+dim(data_test)
+
+#View(data_train)
+```
+
+# Classification Trees
+
+We'll start by fitting a classification tree to the training data, with log telomere length as the response and the other variables as predictors. We'll use cross-validation (CV) on the training set in order to determine the optimal tree size.
+
+```{r}
+### Fitting a single tree
+fit <- rpart(formula = log_telomean ~ ., 
+             data = data_train,
+             control = rpart.control(cp = 0.005))
+cpTab <- printcp(fit)
+plotcp(fit)
+```
+
+We can look at the tree with minimum cross-validation (CV) error (and the best tree using the 1 se rule).
+
+```{r}
+minErr <- which.min(cpTab[,4])
+tree_best <- prune(fit, cp = cpTab[minErr,1])
+good_telo <- which(cpTab[,4] < cpTab[minErr,4] + cpTab[minErr,5])
+min_complexity_telo <- good_telo[1]
+tree_1se <- prune(fit, cp = cpTab[min_complexity_telo,1])
+```
+
+We can explore the results using a plot of the tree.
+
+```{r}
+rpart.plot(tree_1se)
+rpart.plot(tree_best)
+```
+
+We can calculate the mean squared error (MSE) of the tree result. 
+
+```{r}
+preds_1se <- predict(tree_1se, data_test)
+preds_best <- predict(tree_best, data_test)
+(MSE_1tree_1se <- mean((preds_1se - data_test$log_telomean)^2))
+(MSE_1tree_1best <- mean((preds_best - data_test$log_telomean)^2))
+```
+
+
+# Bagging
+
+We'll perform bagging on the training set, and then use the importance() function to determine which variables are most important. 
+
+```{r bag}
+set.seed(1993)
+bag_telo = randomForest(log_telomean ~ ., 
+                        data = data_train,
+                        mtry = 17, 
+                        importance = TRUE) # mtry should equal number of variables
+importance(bag_telo)
+varImpPlot(bag_telo)
+
+#predict_bag = predict(bag_telo, newdata = data_test, type = "class")
+```
+
+
+# Random Forests
+
+In practice, aggregating trees is more useful. We try using a random forest with $5$ variables per split.
+
+```{r}
+# Fitting a random forest
+fit_rf <- randomForest(log_telomean ~ ., 
+                       data = data_train,
+                       mtry = 5)
+fit_ranger <- ranger(log_telomean ~ ., 
+                       data = data_train,
+                       mtry = 5)
+
+preds_rf <- predict(fit_rf, data_test)
+preds_ranger <- predict(fit_ranger, data_test)$predictions
+
+(MSE_rf <- mean((preds_rf - data_test$log_telomean)^2))
+(MSE_ranger <- mean((preds_ranger - data_test$log_telomean)^2))
+```
+
+
+# Boosting
+
+We'll perform boosting on the training set.
+
+```{r boost, cache = TRUE}
+set.seed(1993)
+fit_gbm_1 <- gbm(log_telomean ~ ., 
+               data = data_train,
+               distribution = "gaussian",
+               n.trees = 10000,
+               interaction.depth = 1,
+               shrinkage = 0.01,
+               cv.folds = 10)
+
+fit_gbm_3 <- gbm(log_telomean ~ ., 
+                 data = data_train,
+                 distribution = "gaussian",
+                 n.trees = 10000,
+                 interaction.depth = 1,
+                 shrinkage = 0.01,
+                 cv.folds = 10)
+
+best_fit_gbm_1 <- gbm.perf(fit_gbm_1, method = "cv")
+best_fit_gbm_3 <- gbm.perf(fit_gbm_3, method = "cv")
+
+preds_gbm_1 <- predict(fit_gbm_1, data_test, ntree = best_fit_gbm_1)
+preds_gbm_3 <- predict(fit_gbm_3, data_test, ntree = best_fit_gbm_3)
+
+(MSE_gbm_1 <- mean((preds_gbm_1 - data_test$log_telomean)^2))
+(MSE_gbm_3 <- mean((preds_gbm_3 - data_test$log_telomean)^2))
+
+roc_gbm <- roc(data_test$log_telomean, preds_gbm_1)
+plot(roc_gbm, legacy.axes = TRUE, print.auc = TRUE)
+```
+
+
+# Comparison of Tree-Based Models
+
+Compare the error rate of different tree-based models and discuss your results.
+
+```{r compare}
+test_MSE = cbind(MSE_1tree_1se, MSE_1tree_1best, MSE_rf, MSE_ranger, MSE_gbm_1, MSE_gbm_3)
+
+rownames(test_MSE) = colnames(MSE_1tree_1se); colnames(test_MSE) = c("Tree 1 SE", "Tree Best","Random Forest", "Ranger", "Boost 1", "Boost 3")
+
+knitr::kable(test_MSE, align = "c")
+```
