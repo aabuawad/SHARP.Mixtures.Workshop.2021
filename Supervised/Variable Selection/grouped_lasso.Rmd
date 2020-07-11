@@ -16,6 +16,8 @@ library(tidyverse)
 library(grpreg)
 #install.packages("janitor")
 library(janitor)
+#install.packages("Hmisc")
+library(Hmisc)
 
 #This turns off scientific notation
 options(scipen = 999)
