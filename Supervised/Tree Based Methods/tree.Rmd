@@ -114,9 +114,13 @@ rpart.plot(tree_1se)
 rpart.plot(tree_best)
 ```
 
-We can calculate the mean squared error (MSE) of the tree result. 
+We can measure "how important" each variable is for the final result, and calculate the mean squared error (MSE) of the tree result. 
 
 ```{r}
+# Variable importance - Represents the decrease in the variance/impurity caused by the addition of a variable to the tree.
+tree_1se$variable.importance/max(tree_1se$variable.importance)
+tree_best$variable.importance/max(tree_best$variable.importance)
+
 preds_1se <- predict(tree_1se, data_test)
 preds_best <- predict(tree_best, data_test)
 (MSE_1tree_1se <- mean((preds_1se - data_test$log_telomean)^2))
@@ -150,12 +154,22 @@ In practice, aggregating trees is more useful. We try using a random forest with
 fit_rf <- randomForest(log_telomean ~ ., 
                        data = data_train,
                        mtry = 5)
+varImpPlot(fit_rf)
+
 fit_ranger <- ranger(log_telomean ~ ., 
                        data = data_train,
                        mtry = 5)
+fit_ranger
 
 preds_rf <- predict(fit_rf, data_test)
 preds_ranger <- predict(fit_ranger, data_test)$predictions
+
+data_test %>% 
+  ggplot(aes(x = preds_ranger, y = log_telomean)) +
+  geom_point(colour = "#ff6767", alpha = 0.3) +
+  labs(title = "Predicted vs Observed", 
+       x = "Predicted Telomere Length", 
+       y = "Oberved Telomere Length") +  theme_bw(18)
 
 (MSE_rf <- mean((preds_rf - data_test$log_telomean)^2))
 (MSE_ranger <- mean((preds_ranger - data_test$log_telomean)^2))
