@@ -189,7 +189,8 @@ We perform this analysis first with the three-group model and the lasso penalty.
 
 ```{r cvlasso}
 cv_lasso_3 <- cv.grpreg(x, y, group3, 
-                        penalty = "grLasso", seed = 1988)
+                        penalty = "grLasso", seed = 1988,
+                        n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_lasso_3 <- cv_lasso_3$lambda.min
@@ -210,7 +211,9 @@ For completeness, we can repeat this with four groups.
 
 ```{r}
 #4 group model
-cv_lasso_4 <- cv.grpreg(x, y, group4, penalty = "grLasso", seed = 1988)
+cv_lasso_4 <- cv.grpreg(x, y, group4, 
+                        penalty = "grLasso", seed = 1988,
+                        n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_lasso_4 <- cv_lasso_4$lambda.min
@@ -225,7 +228,9 @@ fit_lasso_4$beta
 
 ```{r}
 #4b group model
-cv_lasso_4b <- cv.grpreg(x, y, group4b, penalty = "grLasso", seed = 1988)
+cv_lasso_4b <- cv.grpreg(x, y, group4b, 
+                         penalty = "grLasso", seed = 1988,
+                         n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_lasso_4b <- cv_lasso_4b$lambda.min
@@ -303,8 +308,8 @@ We repeat the previous analyses, substituting the MCP penalty for the lasso.
 
 #CV to choose the best tuning parameter lambda (ten-fold default)
 cv_mcp_3 <- cv.grpreg(x, y, group3,
-                      penalty = "grMCP", 
-                      seed = 1988)
+                      penalty = "grMCP", seed = 1988,
+                      n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_mcp_3 <- cv_mcp_3$lambda.min
@@ -317,7 +322,9 @@ fit_mcp_3$beta
 
 #4 group model
 #CV to choose the best tuning parameter lambda (ten-fold default)
-cv_mcp_4 <- cv.grpreg(x, y, group4, penalty = "grMCP", seed = 1988)
+cv_mcp_4 <- cv.grpreg(x, y, group4, 
+                      penalty = "grMCP", seed = 1988,
+                      n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_mcp_4 <- cv_mcp_4$lambda.min
@@ -373,8 +380,8 @@ mcp_beta_4 %>%
 
 #CV to choose the best tuning parameter lambda (ten-fold default)
 cv_scad_3 <- cv.grpreg(x, y, group3, 
-                       penalty = "grSCAD", 
-                       seed = 1988)
+                       penalty = "grSCAD", seed = 1988,
+                       n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_scad_3 <- cv_scad_3$lambda.min
@@ -387,7 +394,9 @@ fit_scad_3$beta
 
 #4 group model
 #CV to choose the best tuning parameter lambda (ten-fold default)
-cv_scad_4 <- cv.grpreg(x, y, group4, penalty = "grSCAD", seed = 1988)
+cv_scad_4 <- cv.grpreg(x, y, group4, 
+                       penalty = "grSCAD", seed = 1988,
+                       n.lambda = 200, max.iter = 20000)
 
 #Find the lambda that results in the smallest CV error
 best_scad_4 <- cv_scad_4$lambda.min
