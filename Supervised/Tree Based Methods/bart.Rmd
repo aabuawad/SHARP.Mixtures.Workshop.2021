@@ -39,20 +39,18 @@ Next we remove missing values and reorder predictors (environmental variables fi
 
 ```{r}
 data_tree <- study_pop %>% 
-  mutate_at(vars(contains("la")), log) %>% 
-  mutate(log_telomean = log(telomean)) %>% 
-  dplyr::select(log_telomean, lbx074la:lbx187la, lbxd03la:lbx194la, everything(), -seqn, -telomean) %>% 
+  mutate_at(vars(contains("la")), log) %>% # log POP
+  mutate_at(vars(contains("lbx")), scale) %>% # scale logged POP and scale white blood cells
+  mutate_at(vars(contains("age")), scale) %>% # scale age and age^2
+  mutate(scale_log_telomean = scale(log(telomean))) %>% 
+  dplyr::select(scale_log_telomean, lbx074la:lbx187la, lbxd03la:lbx194la, everything(), -seqn, -telomean) %>% 
   na.omit(log_telomean) 
-
-names(data_tree)
-
-dim(data_tree)
 ```
 
 Trees utilize a training set to model set parameters that can be applied to a test set (remaining observations). BART requires the outcome variable (y.train) to be a vector of numeric values. The covariates for training (validation, if any) are x.train (x.test) which can be matrices or dataframes.
 
 ```{r}
-data_expanded <- model.matrix(log_telomean ~ ., data_tree)[,-1]
+data_expanded <- model.matrix(scale_log_telomean ~ ., data_tree)[,-1]
 
 set.seed(1993)
 train_sample <- sample(1:nrow(data_tree), floor(nrow(data_tree)/2))
@@ -74,28 +72,30 @@ Fit a BART model to the training data, with log telomere length as the response 
 
 ```{r}
 set.seed(1988)
-post <- wbart(x_train, y_train, nskip = 100) # nskip = burnin
-# wbart is streamlined for continuous outcome variables -- see gbart for binary.
+post <- wbart(x_train, y_train, nskip=1000, ndpost=1000, keepevery=100) 
+# nskip = burnin
+# ndpost = number of MCMC samples returned
+# keepevery = thinning
+# wbart is for continuous outcome variables -- see gbart for binary.
 ```
 
 Post is a list.
 
 ```{r}
-class(post)
 names(post)
 
 dim(post$yhat.train)
 # 1000 draws for each participant
 length(post$yhat.train.mean)
-# averaged over all draws
+# average predicted LTL over all draws
 length(post$sigma)
-# number of post burn-in draws
+# number of post burn-in draws, counting thinned
 ```
 
 ## Assess convergence
 ```{r}
 plot(post$sigma, type="l")
-abline(v=50, col="red") # separates burn-in
+abline(v=1000, col="red") # separates burn-in
 ```
 
 ## Predict
@@ -121,24 +121,22 @@ length(yhat)
 
 Mean squared error on test set.
 ```{r}
-length(y_test)
-
 mean((yhat - y_test)^2)
 ```
 
-## Thinning
+Correlation
+```{r}
+cor(cbind(y_test, yhat))
+```
+
+### Viz
 
 ```{r}
-set.seed(1988)
-post_thin <- wbart(x_train, y_train, nskip=1000, ndpost=10000,
-                  nkeeptrain=0, nkeeptest=0, nkeeptestmean=0, nkeeptreedraws=200)
-pred_thin <- predict(post_thin, x_test)
-yhat_thin <- apply(pred_thin, 2, mean)
-length(yhat_thin)
-
-fmat <- cbind(y_test, yhat, yhat_thin)
-colnames(fmat) <- c("y", "yhat", "yhatThin")
-pairs(fmat)
+cbind(y_test, yhat) %>% as_tibble() %>% 
+  ggplot(aes(x = y_test, y = yhat)) +
+  geom_point() +
+  geom_abline(slope=1,intercept=0,color="pink", linetype="dashed") +
+  theme_bw()
 ```
 
 ## Calculate marginal effects
@@ -159,33 +157,29 @@ H = floor(0.75*length(y_train))
 L = 10
 
 x_seq = seq(min(x_marg[, 36]), max(x_marg[, 36]), length.out=L) 
-length(x_seq)
 # creates vector from min to max of length L
 x_test_marg = cbind(x_marg[, -36], x_seq[1])
 # same predictors except predictor of interest set to min
 
-dim(x_test_marg)
 for (j in 2:L) {
   x_test_marg = rbind(x_test_marg, cbind(x_marg[, -36], x_seq[j]))
   }
 # add training data with predictor of interest set to vector x values
 # kind of like exposed v unexposed
-dim(x_test_marg)
 
 pred_marg = predict(post_marg, x_test_marg)
 # predict on x.test + x.train with predictor of interest fixed in test and varied in train
 
 partial = matrix(nrow=1000, ncol=L)
-
-for(j in 1:L) {
+for (j in 1:L) {
     h = (j - 1) * H + 1:H
     partial[, j] = apply(pred_marg[, h], 1, mean)
 }
 
 plot(x_seq, apply(partial, 2, mean), type='l',
-     xlab='Furan 4', ylab='log LTL',ylim=c(-0.1, 0.1))
+     xlab='Furan lbxf04la', ylab='log LTL',ylim=c(-0.1, 0.1))
 lines(x_seq, apply(partial, 2, quantile, probs=0.025), lty=2)
 lines(x_seq, apply(partial, 2, quantile, probs=0.975), lty=2)
-abline(h=0, col="red")
+abline(h=0, col="red",lty=3)
 ```
 
