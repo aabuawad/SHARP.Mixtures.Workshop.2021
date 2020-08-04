@@ -98,7 +98,7 @@ temp <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TRUE,
 ##    our fit based on 100 samples. Rather we will load in the results from 100,000. 
 
 #save(fit_gvs_knots100,file="bkmr_NHANES_gvs_knots100.RData")
-load("Supervised/BKMR/saved_model/bkmr_NHANES_gvs_knots100_cloud.RData")
+load("Supervised/BKMR/saved_model/bkmr_NHANES_gvs_knots100.RData")
 summary(fit_gvs_knots100)
 
 ## obtain posterior inclusion probabilities (PIPs)

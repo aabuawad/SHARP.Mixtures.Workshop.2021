@@ -1,10 +1,4 @@
 base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
 tidyverse
 ggplot2
 tibble
@@ -27,3 +21,4 @@ tree
 ranger
 randomForest
 gbm
+knitr
