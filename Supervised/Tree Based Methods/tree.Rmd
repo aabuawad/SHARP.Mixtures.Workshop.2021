@@ -100,13 +100,13 @@ plotcp(fit)
 We can look at the tree with minimum cross-validation (CV) error (and the best tree using the 1 se rule).
 
 ```{r}
-minErr <- which.min(cpTab[,4])
-tree_best <- prune(fit, cp = cpTab[minErr,1])
-good_telo <- which(cpTab[,4] < cpTab[minErr,4] + cpTab[minErr,5])
+minErr <- which.min(cpTab[, 4])
+tree_best <- prune(fit, cp = cpTab[minErr, 1])
+good_telo <- which(cpTab[, 4] < cpTab[minErr, 4] + cpTab[minErr, 5])
 min_complexity_telo <- good_telo[1]
-tree_1se <- prune(fit, cp = cpTab[min_complexity_telo,1])
+tree_1se <- prune(fit, cp = cpTab[min_complexity_telo, 1])
 ```
-
+r
 We can explore the results using a plot of the tree.
 
 ```{r}
@@ -161,6 +161,7 @@ fit_ranger <- ranger(log_telomean ~ .,
                        mtry = 5)
 fit_ranger
 
+
 preds_rf <- predict(fit_rf, data_test)
 preds_ranger <- predict(fit_ranger, data_test)$predictions
 
@@ -206,9 +207,6 @@ preds_gbm_3 <- predict(fit_gbm_3, data_test, ntree = best_fit_gbm_3)
 
 (MSE_gbm_1 <- mean((preds_gbm_1 - data_test$log_telomean)^2))
 (MSE_gbm_3 <- mean((preds_gbm_3 - data_test$log_telomean)^2))
-
-roc_gbm <- roc(data_test$log_telomean, preds_gbm_1)
-plot(roc_gbm, legacy.axes = TRUE, print.auc = TRUE)
 ```
 
 
