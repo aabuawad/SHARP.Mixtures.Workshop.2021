@@ -70,7 +70,7 @@ See the vignette [here.](https://cran.r-project.org/web/packages/BART/vignettes/
 
 Fit a BART model to the training data, with log telomere length as the response and the other variables as predictors.
 
-```{r}
+```{r, run, cache=TRUE}
 set.seed(1988)
 post <- wbart(x_train, y_train, nskip=1000, ndpost=1000, keepevery=100) 
 # nskip = burnin
@@ -101,6 +101,7 @@ abline(v=1000, col="red") # separates burn-in
 ## Predict
 
 Order the observations by the fitted value (yhat.train.mean), and use boxplots to display the draws of f(x) in each column of yhat.train.
+
 ```{r}
 i <- order(post$yhat.train.mean)
 boxplot(post$yhat.train[, i])
@@ -109,6 +110,7 @@ boxplot(post$yhat.train[, i])
 Substantial predictive uncertainty, but you can still see a range of logLTL values.
 
 Predicted outcomes for testing set.
+
 ```{r}
 pred <- predict(post, x_test)
 dim(pred)
@@ -120,11 +122,13 @@ length(yhat)
 ```
 
 Mean squared error on test set.
+
 ```{r}
 mean((yhat - y_test)^2)
 ```
 
-Correlation
+Correlation.
+
 ```{r}
 cor(cbind(y_test, yhat))
 ```
