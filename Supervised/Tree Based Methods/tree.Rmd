@@ -49,7 +49,7 @@ study_pop = read_csv(here::here("Data/studypop.csv")) %>%
 Quick data descriptions; because of the length of the output, we don't execute this command here, but encourage you to!
 
 ```{r, eval = FALSE}
-describe(study_pop)
+#describe(study_pop)
 ```
 
 Next we remove missing values and reorder predictors (environmental variables first, confounders second). In keeping with standard practice, we'll ln-transform the environmental exposures and the outcome. This is the dataset we'll use to illustrate variable selection methods. 
@@ -70,16 +70,20 @@ Trees utilize a training set to model set parameters that can be applied to a te
 
 ```{r}
 set.seed(1993) # for every cv step
+
+# creating training set
 train_telo <- sample(1:nrow(data_tree), floor(nrow(data_tree)/2))
 data_train <- data_tree[train_telo,]
+
+# creating test set
 data_test <- data_tree[-train_telo,]
 ```
 
 Let's take a quick look at our two datasets.
 
 ```{r}
-dim(data_train)
-dim(data_test)
+dim(data_train) # 501 observations
+dim(data_test) # 502 observations
 
 #View(data_train)
 ```
@@ -89,28 +93,46 @@ dim(data_test)
 We'll start by fitting a classification tree to the training data, with log telomere length as the response and the other variables as predictors. We'll use cross-validation (CV) on the training set in order to determine the optimal tree size.
 
 ```{r}
-### Fitting a single tree
+### Fitting a single tree using Recursive Partitioning and Regression Trees (rpart)
 fit <- rpart(formula = log_telomean ~ ., 
              data = data_train,
              control = rpart.control(cp = 0.005))
+
+# cp - Complexity Parameter; Any split that does not decrease the overall lack of fit by a factor of cp is not attempted. Essentially,the user decides that any split that doesn't improve the fit by cp will likely be pruned off by CV.
+
+# Display the Complexity Parameter table for fitted rpart
 cpTab <- printcp(fit)
-plotcp(fit)
+knitr::kable(cpTab)
+
+# Visual representation of CV results from rpart
+plotcp(fit, col = "red") # red horizontal line is drawn 1 SE above the minimum of the curve
 ```
 
-We can look at the tree with minimum cross-validation (CV) error (and the best tree using the 1 se rule).
+We can look at the tree with minimum CV error (and the best tree using the 1 SE rule).
 
 ```{r}
-minErr <- which.min(cpTab[, 4])
+# Determining the size of the tree with min CV error
+minErr <- which.min(cpTab[, 4]) # 3
+
+# Creating a tree based on the minErr
 tree_best <- prune(fit, cp = cpTab[minErr, 1])
-good_telo <- which(cpTab[, 4] < cpTab[minErr, 4] + cpTab[minErr, 5])
-min_complexity_telo <- good_telo[1]
+tree_best
+
+# Checking for trees with minimum complexity
+good_telo <- which(cpTab[, 4] < cpTab[minErr, 4] + cpTab[minErr, 5]) # 2, 3, 4
+min_complexity_telo <- good_telo[1] # 2
+
+# Creating tree based on 1 SE rule
 tree_1se <- prune(fit, cp = cpTab[min_complexity_telo, 1])
 ```
-r
+
 We can explore the results using a plot of the tree.
 
 ```{r}
+# Tree based on 1 SE rule
 rpart.plot(tree_1se)
+
+# Tree based on minimum CV error
 rpart.plot(tree_best)
 ```
 
@@ -121,8 +143,14 @@ We can measure "how important" each variable is for the final result, and calcul
 tree_1se$variable.importance/max(tree_1se$variable.importance)
 tree_best$variable.importance/max(tree_best$variable.importance)
 
+# Predict values onto test set
 preds_1se <- predict(tree_1se, data_test)
 preds_best <- predict(tree_best, data_test)
+
+# Average log telomean length
+mean(data_test$log_telomean)
+
+# Calculate the mean squared error (MSE)
 (MSE_1tree_1se <- mean((preds_1se - data_test$log_telomean)^2))
 (MSE_1tree_1best <- mean((preds_best - data_test$log_telomean)^2))
 ```
@@ -137,11 +165,47 @@ set.seed(1993)
 bag_telo = randomForest(log_telomean ~ ., 
                         data = data_train,
                         mtry = 17, 
-                        importance = TRUE) # mtry should equal number of variables
-importance(bag_telo)
-varImpPlot(bag_telo)
+                        importance = TRUE) 
 
-#predict_bag = predict(bag_telo, newdata = data_test, type = "class")
+# mtry should equal number of variables, it's the # of variables randomly sampled as candidates at each split. 
+
+# View variable importance based on model
+importance(bag_telo)
+
+# Quickly plot variable importance 
+varImpPlot(bag_telo, main = "Bagging Important Variables")
+
+# Create dataset based on variable importance
+bag_imp_df <- importance(bag_telo) %>% 
+  data.frame() %>% 
+  mutate(feature = row.names(.))
+  
+# Remove confounders
+bag_imp_df <- bag_imp_df[-c(25, 26, 27, 28, 30, 31), ] 
+
+# Plot the important chemicals
+bag_imp_df %>% 
+  ggplot(aes(x = reorder(feature, IncNodePurity), 
+                         y = IncNodePurity)) +
+  geom_point() +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.text.y = element_text(hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = 'gray', linetype = 'dashed'),
+        panel.background = element_rect(fill = 'white', colour = 'black')) +
+    labs(x = "Chemical",
+         y = "Increasing Node Purity",
+         title = "Bagging Important Variables")
+
+# Predict values onto test set
+preds_bag = predict(bag_telo, newdata = data_test, type = "class")
+
+# Calculate the MSE
+(MSE_bag <- mean((preds_bag - data_test$log_telomean)^2))
 ```
 
 
@@ -150,63 +214,68 @@ varImpPlot(bag_telo)
 In practice, aggregating trees is more useful. We try using a random forest with $5$ variables per split.
 
 ```{r}
-# Fitting a random forest
+# Fitting a random forest using randomForest function
 fit_rf <- randomForest(log_telomean ~ ., 
                        data = data_train,
-                       mtry = 5)
-varImpPlot(fit_rf)
+                       mtry = 10)
 
+# View variable importance based on model
+importance(fit_rf)
+
+# Quickly plot variable importance 
+varImpPlot(fit_rf, main = "Random Forest Important Variables")
+
+# Create dataset based on variable importance
+rf_imp_df <- importance(fit_rf) %>% 
+  data.frame() %>% 
+  mutate(feature = row.names(.))
+  
+
+# Remove confounders
+rf_imp_df <- rf_imp_df[-c(25, 26, 27, 28, 30, 31), ] 
+
+# Plot the important chemicals
+rf_imp_df %>% 
+  ggplot(aes(x = reorder(feature, IncNodePurity), 
+                         y = IncNodePurity)) +
+  geom_point() +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.text.y = element_text(hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = 'gray', linetype = 'dashed'),
+        panel.background = element_rect(fill = 'white', colour = 'black')) +
+    labs(x = "Chemical",
+         y = "Increasing Node Purity",
+         title = "Random Forest Important Variables")
+
+# Fitting a random forest using ranger function
 fit_ranger <- ranger(log_telomean ~ ., 
                        data = data_train,
-                       mtry = 5)
+                     min.node.size = 20,
+                     num.trees = 1000)
 fit_ranger
 
-
+# Predict values onto test set
 preds_rf <- predict(fit_rf, data_test)
 preds_ranger <- predict(fit_ranger, data_test)$predictions
 
+# View observed vs predicted values from ranger random forest
 data_test %>% 
   ggplot(aes(x = preds_ranger, y = log_telomean)) +
   geom_point(colour = "#ff6767", alpha = 0.3) +
+  theme_bw(18) +
+  theme(plot.title = element_text(hjust = 0.5)) +
   labs(title = "Predicted vs Observed", 
        x = "Predicted Telomere Length", 
-       y = "Oberved Telomere Length") +  theme_bw(18)
+       y = "Oberved Telomere Length")
 
+# Calculate MSE
 (MSE_rf <- mean((preds_rf - data_test$log_telomean)^2))
 (MSE_ranger <- mean((preds_ranger - data_test$log_telomean)^2))
-```
-
-
-# Boosting
-
-We'll perform boosting on the training set.
-
-```{r boost, cache = TRUE}
-set.seed(1993)
-fit_gbm_1 <- gbm(log_telomean ~ ., 
-               data = data_train,
-               distribution = "gaussian",
-               n.trees = 10000,
-               interaction.depth = 1,
-               shrinkage = 0.01,
-               cv.folds = 10)
-
-fit_gbm_3 <- gbm(log_telomean ~ ., 
-                 data = data_train,
-                 distribution = "gaussian",
-                 n.trees = 10000,
-                 interaction.depth = 1,
-                 shrinkage = 0.01,
-                 cv.folds = 10)
-
-best_fit_gbm_1 <- gbm.perf(fit_gbm_1, method = "cv")
-best_fit_gbm_3 <- gbm.perf(fit_gbm_3, method = "cv")
-
-preds_gbm_1 <- predict(fit_gbm_1, data_test, ntree = best_fit_gbm_1)
-preds_gbm_3 <- predict(fit_gbm_3, data_test, ntree = best_fit_gbm_3)
-
-(MSE_gbm_1 <- mean((preds_gbm_1 - data_test$log_telomean)^2))
-(MSE_gbm_3 <- mean((preds_gbm_3 - data_test$log_telomean)^2))
 ```
 
 
@@ -215,9 +284,14 @@ preds_gbm_3 <- predict(fit_gbm_3, data_test, ntree = best_fit_gbm_3)
 Compare the error rate of different tree-based models and discuss your results.
 
 ```{r compare}
-test_MSE = cbind(MSE_1tree_1se, MSE_1tree_1best, MSE_rf, MSE_ranger, MSE_gbm_1, MSE_gbm_3)
+test_MSE = cbind(MSE_1tree_1se, MSE_1tree_1best, MSE_bag, MSE_rf, MSE_ranger)
 
-rownames(test_MSE) = colnames(MSE_1tree_1se); colnames(test_MSE) = c("Tree 1 SE", "Tree Best","Random Forest", "Ranger", "Boost 1", "Boost 3")
+rownames(test_MSE) = colnames(MSE_1tree_1se); colnames(test_MSE) = c("Tree 1 SE", "Tree Best", "Bagging", "Random Forest", "Ranger")
 
 knitr::kable(test_MSE, align = "c")
 ```
+
+Traditional classical tree-based methods are not able to control for confounders outside the tree part (i.e. the final tree usually consists of confounders and explanatory variables, making it difficult to compare to other methods). 
+
+Additionally, the lack of coefficients/exposure response curves makes it difficult to interpret the results. However, we will explore this further with Bayesian Additive Regression Trees (BART).
+
