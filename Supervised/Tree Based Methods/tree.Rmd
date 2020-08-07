@@ -171,9 +171,35 @@ bag_telo = randomForest(log_telomean ~ .,
 
 # View variable importance based on model
 importance(bag_telo)
-varImpPlot(bag_telo)
 
-# add similar plot with only chemicals, not confounders
+# Quickly plot variable importance 
+varImpPlot(bag_telo, main = "Bagging Important Variables")
+
+# Create dataset based on variable importance
+bag_imp_df <- importance(bag_telo) %>% 
+  data.frame() %>% 
+  mutate(feature = row.names(.))
+  
+# Remove confounders
+bag_imp_df <- bag_imp_df[-c(25, 26, 27, 28, 30, 31), ] 
+
+# Plot the important chemicals
+bag_imp_df %>% 
+  ggplot(aes(x = reorder(feature, IncNodePurity), 
+                         y = IncNodePurity)) +
+  geom_point() +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.text.y = element_text(hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = 'gray', linetype = 'dashed'),
+        panel.background = element_rect(fill = 'white', colour = 'black')) +
+    labs(x = "Chemical",
+         y = "Increasing Node Purity",
+         title = "Bagging Important Variables")
 
 # Predict values onto test set
 preds_bag = predict(bag_telo, newdata = data_test, type = "class")
@@ -195,7 +221,36 @@ fit_rf <- randomForest(log_telomean ~ .,
 
 # View variable importance based on model
 importance(fit_rf)
-varImpPlot(fit_rf)
+
+# Quickly plot variable importance 
+varImpPlot(fit_rf, main = "Random Forest Important Variables")
+
+# Create dataset based on variable importance
+rf_imp_df <- importance(fit_rf) %>% 
+  data.frame() %>% 
+  mutate(feature = row.names(.))
+  
+
+# Remove confounders
+rf_imp_df <- rf_imp_df[-c(25, 26, 27, 28, 30, 31), ] 
+
+# Plot the important chemicals
+rf_imp_df %>% 
+  ggplot(aes(x = reorder(feature, IncNodePurity), 
+                         y = IncNodePurity)) +
+  geom_point() +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.text.y = element_text(hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = 'gray', linetype = 'dashed'),
+        panel.background = element_rect(fill = 'white', colour = 'black')) +
+    labs(x = "Chemical",
+         y = "Increasing Node Purity",
+         title = "Random Forest Important Variables")
 
 # Fitting a random forest using ranger function
 fit_ranger <- ranger(log_telomean ~ ., 
@@ -212,9 +267,11 @@ preds_ranger <- predict(fit_ranger, data_test)$predictions
 data_test %>% 
   ggplot(aes(x = preds_ranger, y = log_telomean)) +
   geom_point(colour = "#ff6767", alpha = 0.3) +
+  theme_bw(18) +
+  theme(plot.title = element_text(hjust = 0.5)) +
   labs(title = "Predicted vs Observed", 
        x = "Predicted Telomere Length", 
-       y = "Oberved Telomere Length") +  theme_bw(18)
+       y = "Oberved Telomere Length")
 
 # Calculate MSE
 (MSE_rf <- mean((preds_rf - data_test$log_telomean)^2))
