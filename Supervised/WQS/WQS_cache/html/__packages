@@ -1,5 +1,4 @@
 base
-knitr
 gWQS
 tidyverse
 ggplot2
@@ -11,3 +10,4 @@ dplyr
 stringr
 forcats
 xtable
+knitr

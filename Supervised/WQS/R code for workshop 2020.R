@@ -16,9 +16,9 @@ library(gWQS)
 dataset = read.csv("Data/studypop.csv")
 
 # define the chemicals to include in the mixture
-#mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", "LBX187LA",
-             "LBX194LA", "LBXD03LA", "LBXD05LA", "LBXD07LA", "LBXF03LA", "LBXF04LA", "LBXF05LA", "LBXF08LA",
-             "LBXHXCLA", "LBXPCBLA")
+# mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", "LBX187LA",
+#             "LBX194LA", "LBXD03LA", "LBXD05LA", "LBXD07LA", "LBXF03LA", "LBXF04LA", "LBXF05LA", "LBXF08LA",
+#             "LBXHXCLA", "LBXPCBLA")
 ## for workshop lecture example
 mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", "LBX187LA",
             "LBX194LA")
@@ -150,5 +150,5 @@ gwqs_weights_tab(result5rh)
 summary(result5rh$fit)
 result5rh$final_weights
 
-
-#write.csv(result5rh$wmat, paste0(directory_path_out, "WQSwtsrh.csv"))
+# save(result5rh, file = here::here("/Supervised/WQS/WQSwtsrh.RDA"))
+# write.csv(result5rh$wmat, here::here("/Supervised/WQS/WQSwtsrh.csv"))
