@@ -1,27 +1,23 @@
 # Workshop on mixtures, Columbia August 2020
 
 # install the packages needed for the workshop
-#install.packages("gWQS")
+# install.packages("gWQS")
 # import the packages just installed
 library(gWQS)
 
-
-# define the path
-#directory_path = "/Users/stefanorenzetti/Documents/Columbia Workshop Mixtures/"
-#directory_path = "/Users/gennic01/desktop/temp teaching/mailman mixtures workshop 2018/"
-#directory_path_out = "/Users/gennic01/desktop/temp teaching/mailman mixtures workshop 2020/"
+#rm(list = ls())
 # import the dataset
-#dataset = read.csv(paste0(directory_path, "studypop.csv"))
-
 dataset = read.csv("Data/studypop.csv")
 
 # define the chemicals to include in the mixture
+mixture = names(dataset)[grep("LA",names(dataset))]
+# mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", 
+#             "LBX187LA","LBX194LA", "LBXD03LA", "LBXD05LA", "LBXD07LA", "LBXF03LA", "LBXF04LA", "LBXF05LA", 
+#             "LBXF08LA","LBXHXCLA", "LBXPCBLA")
+
+## smaller mixture for workshop lecture example
 # mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", "LBX187LA",
-#             "LBX194LA", "LBXD03LA", "LBXD05LA", "LBXD07LA", "LBXF03LA", "LBXF04LA", "LBXF05LA", "LBXF08LA",
-#             "LBXHXCLA", "LBXPCBLA")
-## for workshop lecture example
-mixture = c("LBX074LA", "LBX099LA", "LBX118LA", "LBX138LA", "LBX153LA", "LBX170LA", "LBX180LA", "LBX187LA",
-            "LBX194LA")
+#            "LBX194LA")
 
 # log-transform the outcome
 dataset$log_TELOMEAN = log(dataset$TELOMEAN)
@@ -34,7 +30,7 @@ summary(cov_only)
 # fit a first unadjusted model to look at the association between the mixture and the outcome
 # TELOMEAN = Mean Telomere Length
 results1 = gwqs(log_TELOMEAN ~ wqs, mix_name = mixture, data = dataset, q = 10, validation = 0.6, 
-                b = 100, b1_pos = FALSE, b1_constr = TRUE, family = "gaussian", seed = 123)
+                b = 100, b1_pos = FALSE, b1_constr = FALSE, family = "gaussian", seed = 123)
 # bar plot
 gwqs_barplot(results1)
 # scatter plot y vs wqs
@@ -51,11 +47,20 @@ results1$final_weights
 # blood data: LBXWBCSI LBXLYPCT LBXMOPCT LBXEOPCT LBXBAPCT LBXNEPCT
 # demographics: age_cent age_sq race_cat bmi_cat3 ln_lbxcot edu_cat male
 # positive direction
-result2 = gwqs(log_TELOMEAN ~ wqs+LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
+dataset$race_cat=as.factor(dataset$race_cat)
+dataset$bmi_cat3=as.factor(dataset$bmi_cat3)
+dataset$edu_cat=as.factor(dataset$edu_cat)
+is.factor(dataset$race_cat)
+is.factor(dataset$bmi_cat3)
+is.factor(dataset$edu_cat)
+is.factor(dataset$male)
+
+result2 = gwqs(log_TELOMEAN ~ wqs + 
+                 LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
                mix_name = mixture, data = dataset, q = 10, 
-               validation = 0.6, b = 100, b1_pos = TRUE, b1_constr = TRUE, family = "gaussian", 
-               seed = 123)
+               validation = 0.6, b = 100, b1_pos = TRUE, b1_constr = FALSE, family = "gaussian", 
+               seed = 123)  ## signal="abst" or "t2"(default)
 gwqs_barplot(result2)
 gwqs_summary_tab(result2)
 gwqs_scatterplot(result2)
@@ -82,7 +87,7 @@ result4 = gwqs(log_TELOMEAN ~ wqs +
                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
                mix_name = mixture, data = dataset, q = 10, 
                validation = 0.6,  b = 100, b1_pos = TRUE, b1_constr = TRUE, family = "gaussian", 
-               seed = 123, rs=TRUE, n_var=5) #3 for set of 9 and 5 for set of 18
+               seed = 123,rs=TRUE, n_var=5) #3 for set of 9 and 5 for set of 18
 
 gwqs_summary_tab(result4) 
 gwqs_barplot(result4)
@@ -121,6 +126,7 @@ gwqs_barplot(result5)
 gwqs_scatterplot(result5) 
 gwqs_fitted_vs_resid(result5) 
 gwqs_weights_tab(result5) 
+
 
 # run the wqs model using the stratified variables in the mixtures with interaction
 result6 = gwqs(log_TELOMEAN ~ wqs*male +
