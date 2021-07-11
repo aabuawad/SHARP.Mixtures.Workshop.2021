@@ -30,6 +30,8 @@ library(tidyverse)
 library(Matrix)
 #install.packages("fields") # need to select "no" when asked question during install
 library(fields)
+#install.packages("bindrcpp")
+library("bindrcpp")
 ```
 
 ## Data Manipulation 
