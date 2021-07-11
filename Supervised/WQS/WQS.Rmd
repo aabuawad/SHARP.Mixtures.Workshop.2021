@@ -47,7 +47,7 @@ summary(cov_only)
 
 ### Model 1
 
-```{r, model1}
+```{r, model1, cache = TRUE}
 # fit a first unadjusted model to look at the association between the mixture and the outcome
 # TELOMEAN = Mean Telomere Length
 results1 = gwqs(log_TELOMEAN ~ wqs, mix_name = mixture, data = dataset, q = 10, validation = 0.6, 
@@ -67,7 +67,7 @@ results1$final_weights
 
 ### Model 2
 
-```{r, model2}
+```{r, model2, cache = TRUE}
 # adjusting for covariates:
 # blood data: LBXWBCSI LBXLYPCT LBXMOPCT LBXEOPCT LBXBAPCT LBXNEPCT
 # demographics: age_cent age_sq race_cat bmi_cat3 ln_lbxcot edu_cat male
@@ -104,7 +104,7 @@ sum(result3$bres$b1 < 0)
 
 ### Model 4
 
-```{r, model4}
+```{r, model4, cache = TRUE}
 #compare to random subset WQS
 result4 = gwqs(log_TELOMEAN ~ wqs +
                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
@@ -138,7 +138,7 @@ gwqs_scatterplot(result2int)
 gwqs_weights_tab(result2int)
 ```
 
-```{r, int2}
+```{r, int2, cache = TRUE}
 # run the wqs model using the stratified variables in the mixtures  
 dataset$sex = factor(dataset$male) 
 is.factor(dataset$male)
@@ -158,7 +158,7 @@ gwqs_fitted_vs_resid(result5)
 gwqs_weights_tab(result5) 
 ```
 
-```{r, int3}
+```{r, int3, cache = TRUE}
 # run the wqs model using the stratified variables in the mixtures with interaction
 result6 = gwqs(log_TELOMEAN ~ wqs*male +
                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
@@ -175,7 +175,7 @@ gwqs_barplot(result6)
 
 ## Repeated Holdout WQS
 
-```{r, holdout}
+```{r, holdout, cache = TRUE}
 ################################ takes FOREVER ##########################
 #repeated holdout WQS
 # positive direction

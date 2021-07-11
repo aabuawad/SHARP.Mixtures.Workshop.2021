@@ -13,3 +13,8 @@ stringr
 forcats
 bindrcpp
 Matrix
+zoo
+dotCall64
+spam
+maps
+fields
