@@ -2,7 +2,10 @@
 title: "Tree Based Methods"
 author: "Ahlam Abuawad"
 date: "7/10/2020"
-output: html_document
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
 ---
 
 ```{r setup, include = FALSE}
