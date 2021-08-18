@@ -7,10 +7,12 @@ output:
     toc: TRUE
     toc_float: TRUE
     toc_depth : 4
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 library(gWQS) # if you get an error loading the gWQS package, need to download x11 (XQuartz for Mac)
 library(tidyverse)

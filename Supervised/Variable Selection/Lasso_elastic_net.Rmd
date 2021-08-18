@@ -7,11 +7,11 @@ output:
     toc: TRUE
     toc_float: TRUE
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 #install.packages("tidyverse")
 library(tidyverse)
 #install.packages("janitor")

@@ -7,13 +7,15 @@ output:
     toc: true
     toc_float: true
     toc_depth: 4
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
 # Clear environment before running BKMR
 
 require("knitr")
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 ## load required libraries 
 #install.packages("bkmr")
