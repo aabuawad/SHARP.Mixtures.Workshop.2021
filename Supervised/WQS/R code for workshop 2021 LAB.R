@@ -9,7 +9,7 @@ library(gWQS)
 # define the path  
 directory_path_out = "/Users/gennic01/Desktop/RESEARCH/Columbia Mixtures Workshop/"
 # import the dataset
-dataset = read.csv(paste0(directory_path_out, "studypop.csv"))
+dataset = read_csv(here::here(“Data/studypop.csv”))
 dim(dataset)
 dataset = dataset[complete.cases(dataset),]
 dim(dataset)
