@@ -1,5 +1,5 @@
-# Mixtures Workshop 2021
-Columbia University, Mailman School of Public Health. Environmental Mixtures Workshop. August 19-20, 2021. Introduction to multiple techniques to analyze exposure to mixtures in environmental health.
+# Mixtures Workshop 2022
+Columbia University, Mailman School of Public Health. Environmental Mixtures Workshop. July 28-29, 2022. Introduction to multiple techniques to analyze exposure to mixtures in environmental health.
 
 ## Repository guide
 Within this repository you will find the code materials used during the Mixtures Workshop 2021. To help you navigate the repository, below is a description of the repository organization.
