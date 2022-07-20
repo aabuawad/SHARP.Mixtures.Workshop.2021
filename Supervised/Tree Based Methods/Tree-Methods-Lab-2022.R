@@ -1,0 +1,192 @@
+## ----load packages, message=FALSE---------------------------------------------
+## load required libraries 
+#install.packages("corrplot")
+library(corrplot)
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("BART")
+library(BART)
+#install.packages("devtools")
+#devtools::install_github("AnderWilson/bartmix")
+library(bartmix)
+#install.packages("randomForest")
+library(randomForest) 
+
+## ----load data----------------------------------------------------------------
+## read in data and only consider complete data 
+## this drops 327 individuals
+## some tree methods handle missing data but we will not deal with that here
+nhanes <- na.omit(read.csv("../../Data/studypop.csv"))
+
+## ----format outcome-----------------------------------------------------------
+## our y variable - ln transformed and scaled mean telomere length
+## some tree methods make assumptions about the error variance and some do not
+## generally safer to transform the dependent variable to reduce heteroskedasticity
+lnLTL_z <- scale(log(nhanes$TELOMEAN)) 
+
+## ----format exposures---------------------------------------------------------
+## exposures matrix
+## most tree methods are robust to skew and outliers in the predictors
+## in this case we long transform and 
+mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, LBX170LA, LBX180LA, LBX187LA, LBX194LA, LBXHXCLA, LBXPCBLA,
+                              LBXD03LA, LBXD05LA, LBXD07LA,
+                              LBXF03LA, LBXF04LA, LBXF05LA, LBXF08LA)) 
+# Most tree models are invariant the transformations of the predictors (they don't make a difference)
+# here we transform it to make the plots consistent with other methods so they can be compared
+mixture   <- apply(mixture, 2, log)
+mixture <- scale(mixture)
+colnames(mixture) <- c(paste0("PCB",c(74, 99, 118, 138, 153, 170, 180, 187, 194, 169, 126)), 
+                           paste0("Dioxin",1:3), paste0("Furan",1:4)) 
+exposure_names <- colnames(mixture)
+
+## ----format covariates--------------------------------------------------------
+## our X matrix
+covariates <- with(nhanes, cbind(age_cent, male, bmi_cat3, edu_cat, race_cat,
+                                 LBXWBCSI, LBXLYPCT, LBXMOPCT, 
+                                 LBXNEPCT, LBXEOPCT, LBXBAPCT, ln_lbxcot)) 
+
+## ----regress out covariates---------------------------------------------------
+# regress covariates out
+lnLTL_z_residuals <- lm(lnLTL_z~covariates)$residuals
+
+## ----fit random forest--------------------------------------------------------
+# fit the random forest model
+set.seed(1000)
+fit_rf <- randomForest(y=lnLTL_z_residuals,
+                       x=mixture,
+                       ntree=1000,
+                       mtry=6,
+                       importance = TRUE) 
+
+## ----predict with random forests----------------------------------------------
+pred_rf <- predict(fit_rf)
+
+# view predicted vs observed
+plot(pred_rf~lnLTL_z_residuals, 
+     main="Predicted vs observed with BART")
+
+## ----variable importance with random forests----------------------------------
+# extract variable inportance from the fit random forest model
+rf_var_imortance <- importance(fit_rf)
+rf_var_imortance
+
+## ----variable importance with random forests visualize------------------------
+# visualize the variable improtance
+rf_var_imortance <- data.frame(rf_var_imortance) %>%
+  mutate(exposure=row.names(rf_var_imortance)) %>% 
+  pivot_longer(!exposure)
+
+ggplot(rf_var_imortance, aes(x=exposure, y=value)) +
+  geom_point() +
+  theme_minimal() + 
+  ggtitle("Variable Importance with Random Forests") + 
+  xlab("Exposure") + 
+  ylab("Importance") + 
+  facet_wrap(~name, scales = "free_y") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+## ----random forest partial dependence plot for Furan 1------------------------
+partialPlot(x = fit_rf, 
+            pred.data = mixture, 
+            x.var = "Furan1",
+            main = "Funan 1 partial dependence with random forest", 
+            xlab = "Exposure (z-score of log-transformed exposure)",
+            ylab = "Estimate (mean response)") 
+
+## ----fit BART model-----------------------------------------------------------
+# fit the BART model
+set.seed(1000)
+fit_bart <- gbart(x.train=cbind(mixture,covariates), 
+                  y.train=lnLTL_z,
+                  nskip=2000,    # MCMC iterations that are discarded as burning
+                  ndpost=2000)   # MCMC iterations after burning that are retained for 
+
+load("../../bart_fits_for_lab.rda")
+
+## ----fitted values------------------------------------------------------------
+plot(fit_bart$yhat.train.mean~lnLTL_z, 
+     main="fitted vs observed with BART")
+
+## ----BART variable importance-------------------------------------------------
+# variable importance for the mixture components with BART
+varcount <- data.frame(exposure=exposure_names,
+                       mean=fit_bart$varcount.mean[exposure_names],
+                       lower=apply(fit_bart$varcount[,exposure_names],2,quantile,0.025),
+                       upper=apply(fit_bart$varcount[,exposure_names],2,quantile,0.975))
+
+# visualize the variable importance with BART
+ggplot(varcount, aes(x=exposure, y=mean, ymin=lower, ymax=upper)) +
+  geom_errorbar(width=0) +
+  geom_point() +
+  theme_minimal() + 
+  ggtitle("Variable Inclusion Count with BART") + 
+  xlab("Exposure") + 
+  ylab("Count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+## ----BART partial dependence for Furan 1, eval=FALSE--------------------------
+#  # partial dependence of BART
+#  funan1_pd <- partialdependence1(fit_bart,
+#                                  data=cbind(mixture,covariates),
+#                                  exposures = "Furan1",
+#                                  L=50)
+
+## ----BART partial dependence for Furan 1 visualization------------------------
+ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
+  geom_ribbon(fill="grey70") + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("Funan 1 partial dependence with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)") 
+
+## ----BART partial dependence for all components, echo=FALSE, eval=FALSE-------
+#  all_pd <- partialdependence1(fit_bart,
+#                              data=cbind(mixture,covariates),
+#                              exposures = exposure_names,
+#                              L=50)
+
+## ----BART partial dependence for all components visualization-----------------
+ggplot(all_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
+  facet_wrap(~exposure) +
+  geom_ribbon(fill="grey70") +
+  geom_line() +
+  theme_minimal() +
+  ggtitle("Partial dependence with BART") +
+  xlab("Exposure (z-score of log-transformed exposure)") +
+  ylab("Estimate (mean response)")
+
+## ----two way partial dependence with BART, eval=FALSE-------------------------
+#  pd_2way <- partialdependence2(fit_bart,
+#                                  data=cbind(mixture,covariates),
+#                                  var = "PCB169",
+#                                var2 = "Furan1",
+#                                qtls = c(0.1,0.25,0.5,0.75,0.9),
+#                                  L=20)
+
+## ----two way partial dependence with BART visualize---------------------------
+pd_2way$qtl <- as.factor(pd_2way$qtl)
+ggplot(pd_2way, aes(x=x, y=mean, 
+                    color=qtl,
+                    linetype=qtl)) + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("PCB169 partial dependence by quantile of Furan 1 with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)") 
+
+## ----BART total mixture effect, eval=FALSE------------------------------------
+#  totalmix <- totalmixtureeffect(fit_bart,
+#                                 data=cbind(mixture,covariates),
+#                                 exposures = exposure_names,
+#                                 qtls = seq(0.2,0.8,0.05))
+
+## ----BART total mixture effect visualization----------------------------------
+ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) + 
+  geom_errorbar(width=0) + geom_point() + theme_minimal() +
+  ggtitle("Total mixture effect with BART") + 
+  xlab("Quantile") + 
+  ylab("Estimate (mean response)")
+
