@@ -16,8 +16,6 @@ opts_chunk$set(echo = TRUE)
 knit_hooks$set(purl = hook_purl) 
 ```
 
-
-
 ## Setup
 
 Load the packages used in this lab.
@@ -32,11 +30,15 @@ library(ggplot2)
 library(tidyverse)
 #install.packages("BART")
 library(BART)
-#install.packages("devtools")
-#devtools::install_github("AnderWilson/bartmix")
-library(bartmix)
 #install.packages("randomForest")
 library(randomForest) 
+```
+
+## Uncomment the below and then load bartmix library when running for first time
+```{r load bartmix, message=FALSE}
+# install.packages("devtools")
+# devtools::install_github("AnderWilson/bartmix")
+library(bartmix)
 ```
 
 ## Load and format data
@@ -47,7 +49,7 @@ Load in the data and do some data preparation.
 ## read in data and only consider complete data 
 ## this drops 327 individuals
 ## some tree methods handle missing data but we will not deal with that here
-nhanes <- na.omit(read.csv("../../Data/studypop.csv"))
+nhanes <- na.omit(read.csv(paste0(here::here(),"/Data/studypop.csv")))
 ```
 
 ```{r format outcome}
@@ -181,7 +183,7 @@ fit_bart <- gbart(x.train=cbind(mixture,covariates),
                   nskip=2000,    # MCMC iterations that are discarded as burning
                   ndpost=2000)   # MCMC iterations after burning that are retained for 
 
-load("../../bart_fits_for_lab.rda")
+load(paste0(here::here(), "/Supervised/Tree Based Methods/bart_fits_for_lab.rda"))
 ```
 ### Fitted values
 
@@ -305,9 +307,6 @@ ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) +
   xlab("Quantile") + 
   ylab("Estimate (mean response)")
 ```
-
-
-
 
 ```{r save results, include=FALSE, purl=FALSE}
 # save(fit_bart, funan1_pd, all_pd, totalmix, pd_2way, file="bart_fits_for_lab.rda")

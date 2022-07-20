@@ -8,17 +8,19 @@ library(ggplot2)
 library(tidyverse)
 #install.packages("BART")
 library(BART)
-#install.packages("devtools")
-#devtools::install_github("AnderWilson/bartmix")
-library(bartmix)
 #install.packages("randomForest")
 library(randomForest) 
+
+## ----load bartmix, message=FALSE----------------------------------------------
+# install.packages("devtools")
+# devtools::install_github("AnderWilson/bartmix")
+library(bartmix)
 
 ## ----load data----------------------------------------------------------------
 ## read in data and only consider complete data 
 ## this drops 327 individuals
 ## some tree methods handle missing data but we will not deal with that here
-nhanes <- na.omit(read.csv("../../Data/studypop.csv"))
+nhanes <- na.omit(read.csv(paste0(here::here(),"/Data/studypop.csv")))
 
 ## ----format outcome-----------------------------------------------------------
 ## our y variable - ln transformed and scaled mean telomere length
@@ -103,7 +105,7 @@ fit_bart <- gbart(x.train=cbind(mixture,covariates),
                   nskip=2000,    # MCMC iterations that are discarded as burning
                   ndpost=2000)   # MCMC iterations after burning that are retained for 
 
-load("../../bart_fits_for_lab.rda")
+load(paste0(here::here(), "/Supervised/Tree Based Methods/bart_fits_for_lab.rda"))
 
 ## ----fitted values------------------------------------------------------------
 plot(fit_bart$yhat.train.mean~lnLTL_z, 
