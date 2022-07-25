@@ -100,7 +100,7 @@ set.seed(1000)
 ## For this lab we are only going to generate 100 MCMC samples to get a sense
 ##   for what the program outputs.  
 
-# fit_gvs_knots100 <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100000, verbose=TRUE, varsel=TRUE, 
+#fit_gvs_knots100 <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=10000, verbose=TRUE, varsel=TRUE, 
 #                              groups=c(rep(1,times=2), 2, rep(1,times=6), rep(3,times=2),rep(2,times=7)), knots=knots100)
 
 temp <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TRUE, varsel=TRUE, 
@@ -109,7 +109,7 @@ temp <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TRUE,
 ## The following statement saved the model fits using 100,000 MCMC samples. We won't save
 ##    our fit based on 100 samples. Rather we will load in the results from 100,000. 
 
-#save(fit_gvs_knots100,file="bkmr_NHANES_gvs_knots100.RData")
+#save(fit_gvs_knots100,file="Supervised/BKMR/saved_model/bkmr_NHANES_gvs_knots100.RData")
 load("Supervised/BKMR/saved_model/bkmr_NHANES_gvs_knots100.RData")
 summary(fit_gvs_knots100)
 
