@@ -67,27 +67,15 @@ pred_rf <- predict(fit_rf)
 
 # view predicted vs observed
 plot(pred_rf~lnLTL_z_residuals, 
-     main="Predicted vs observed with BART")
+     main="Predicted vs observed with random forest")
+
+## ----variable importance with random forests quick plot-----------------------
+varImpPlot(fit_rf, main = "Random forest important variables", type=1)
 
 ## ----variable importance with random forests----------------------------------
-# extract variable inportance from the fit random forest model
+# extract variable importance from the fit random forest model
 rf_var_imortance <- importance(fit_rf)
 rf_var_imortance
-
-## ----variable importance with random forests visualize------------------------
-# visualize the variable improtance
-rf_var_imortance <- data.frame(rf_var_imortance) %>%
-  mutate(exposure=row.names(rf_var_imortance)) %>% 
-  pivot_longer(!exposure)
-
-ggplot(rf_var_imortance, aes(x=exposure, y=value)) +
-  geom_point() +
-  theme_minimal() + 
-  ggtitle("Variable Importance with Random Forests") + 
-  xlab("Exposure") + 
-  ylab("Importance") + 
-  facet_wrap(~name, scales = "free_y") + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 ## ----random forest partial dependence plot for Furan 1------------------------
 partialPlot(x = fit_rf, 
@@ -130,10 +118,10 @@ ggplot(varcount, aes(x=exposure, y=mean, ymin=lower, ymax=upper)) +
 
 ## ----BART partial dependence for Furan 1, eval=FALSE--------------------------
 #  # partial dependence of BART
-#  funan1_pd <- partialdependence1(fit_bart,
-#                                  data=cbind(mixture,covariates),
-#                                  exposures = "Furan1",
-#                                  L=50)
+#  # funan1_pd <- partialdependence1(fit_bart,
+#  #                                 data=cbind(mixture,covariates),
+#  #                                 exposures = "Furan1",
+#  #                                 L=50)
 
 ## ----BART partial dependence for Furan 1 visualization------------------------
 ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
@@ -145,13 +133,32 @@ ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   ylab("Estimate (mean response)") 
 
 ## ----BART partial dependence for all components, echo=FALSE, eval=FALSE-------
-#  all_pd <- partialdependence1(fit_bart,
-#                              data=cbind(mixture,covariates),
-#                              exposures = exposure_names,
-#                              L=50)
+#  # all_pd <- partialdependence1(fit_bart,
+#  #                             data=cbind(mixture,covariates),
+#  #                             exposures = exposure_names,
+#  #                             L=50)
 
 ## ----BART partial dependence for all components visualization-----------------
-ggplot(all_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
+plt <- all_pd %>%
+mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
+                                "PCB 99" = "PCB99",
+                                "PCB 118" = "PCB118",
+                                "PCB 138" = "PCB138",
+                                "PCB 153" = "PCB153",
+                                "PCB 170" = "PCB170",
+                                "PCB 180" = "PCB180",
+                                "PCB 187" = "PCB187",
+                                "PCB 194" = "PCB194",
+                                "1,2,3,6,7,8-hxcdd" = "Dioxin1",
+                                "1,2,3,4,6,7,8-hpcdd" = "Dioxin2",
+                               "1,2,3,4,6,7,8,9-ocdd" =  "Dioxin3",
+                               "2,3,4,7,8-pncdf" =  "Furan1",
+                               "1,2,3,4,7,8-hxcdf" =  "Furan2",
+                               "1,2,3,6,7,8-hxcdf" =  "Furan3",
+                               "1,2,3,4,6,7,8-hxcdf" =  "Furan4",
+                               "PCB 169" =  "PCB169",
+                                "PCB 126" = "PCB126")) %>% 
+  ggplot(aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   facet_wrap(~exposure) +
   geom_ribbon(fill="grey70") +
   geom_line() +
@@ -159,14 +166,15 @@ ggplot(all_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   ggtitle("Partial dependence with BART") +
   xlab("Exposure (z-score of log-transformed exposure)") +
   ylab("Estimate (mean response)")
+plt
 
 ## ----two way partial dependence with BART, eval=FALSE-------------------------
-#  pd_2way <- partialdependence2(fit_bart,
-#                                  data=cbind(mixture,covariates),
-#                                  var = "PCB169",
-#                                var2 = "Furan1",
-#                                qtls = c(0.1,0.25,0.5,0.75,0.9),
-#                                  L=20)
+#  # pd_2way <- partialdependence2(fit_bart,
+#  #                                 data=cbind(mixture,covariates),
+#  #                                 var = "PCB169",
+#  #                               var2 = "Furan1",
+#  #                               qtls = c(0.1,0.25,0.5,0.75,0.9),
+#  #                                 L=20)
 
 ## ----two way partial dependence with BART visualize---------------------------
 pd_2way$qtl <- as.factor(pd_2way$qtl)
@@ -180,10 +188,10 @@ ggplot(pd_2way, aes(x=x, y=mean,
   ylab("Estimate (mean response)") 
 
 ## ----BART total mixture effect, eval=FALSE------------------------------------
-#  totalmix <- totalmixtureeffect(fit_bart,
-#                                 data=cbind(mixture,covariates),
-#                                 exposures = exposure_names,
-#                                 qtls = seq(0.2,0.8,0.05))
+#  # totalmix <- totalmixtureeffect(fit_bart,
+#  #                                data=cbind(mixture,covariates),
+#  #                                exposures = exposure_names,
+#  #                                qtls = seq(0.2,0.8,0.05))
 
 ## ----BART total mixture effect visualization----------------------------------
 ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) + 
