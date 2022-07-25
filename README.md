@@ -10,23 +10,24 @@ The repository is organized into two main folders "Unsupervised" and "Supervised
 
 The Unsupervised folder is subdivided into three folders: 
 
-PCA
+[Clustering](Unsupervised/Clustering)
 
-FA 
+[Factor Analysis (FA)](Unsupervised/FA) 
 
-Clustering
+[Principal Component Analysis (PCA)](Unsupervised/PCA)
+
 
 ### Supervised
 
-The supervised folder is subdivided into: 
+The supervised folder is subdivided into four folders: 
 
-Variable Selection
+[Bayesian Kernel Machine Regression (BKMR)](Supervised/BKMR)
 
 Tree Based Methods
 
-BKMR
+Variable Selection
 
-WQS 
+[WQS](Supervised/WQS)
 
 All the materials for each respective method are within its folder. Note: the RMD file titled with the method's name contains the main code.  
 
@@ -34,6 +35,6 @@ All the materials for each respective method are within its folder. Note: the RM
 
 In addition to the Unsupervised and Supervised folders you will find the following folders: 
 
-Data: contains the data and the data dictionary.
+[Data](Data) contains the data and the data dictionary
 
-Mitro_et_al_materials: contains the paper by Mitro et al.
+[Mitro_et_al_materials](Mitro_et_al_materials) contains the paper by Mitro et al.
