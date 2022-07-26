@@ -19,7 +19,7 @@ The Unsupervised folder is subdivided into three folders:
 
 ### Supervised
 
-The supervised folder is subdivided into four folders: 
+The Supervised folder is subdivided into four folders: 
 
 [Bayesian Kernel Machine Regression (BKMR)](Supervised/BKMR)
 
