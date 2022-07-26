@@ -1,4 +1,7 @@
 # Mixtures Workshop 2022
+
+![](images/banner.png)
+
 Columbia University, Mailman School of Public Health. Environmental Mixtures Workshop. July 28-29, 2022. Introduction to multiple techniques to analyze exposure to mixtures in environmental health.
 
 ## Repository guide
