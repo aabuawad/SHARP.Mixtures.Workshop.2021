@@ -23,9 +23,9 @@ The supervised folder is subdivided into four folders:
 
 [Bayesian Kernel Machine Regression (BKMR)](Supervised/BKMR)
 
-Tree Based Methods
+[Tree Based Methods](Supervised/Tree%20Based%20Methods)
 
-Variable Selection
+[Variable Selection](Supervised/Variable%Selection)
 
 [WQS](Supervised/WQS)
 
