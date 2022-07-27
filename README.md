@@ -32,8 +32,6 @@ The Supervised folder is subdivided into four folders:
 
 [WQS](Supervised/WQS)
 
-All the materials for each respective method are within its folder. Note: the RMD file titled with the method's name contains the main code.
-
 ### Additional folders
 
 In addition to the Unsupervised and Supervised folders you will find the following folders:
