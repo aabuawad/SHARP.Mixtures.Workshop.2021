@@ -1,4 +1,4 @@
-# Mixtures Workshop 2022
+# SHARP Environmental Mixtures Workshop 2022
 
 ![](Images/banner.png)
 
