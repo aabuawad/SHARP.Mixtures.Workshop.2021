@@ -2,3 +2,13 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Rproj
+*.Rproj
+
+# DS_Store
+.DS_Store
+
+# .gitattributes (not sure if this ever did anything?)
+.gitattributes
+
